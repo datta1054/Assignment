@@ -1,0 +1,3 @@
+pandas>=2.1
+kaggle==1.6.17
+python-dotenv>=1.0
