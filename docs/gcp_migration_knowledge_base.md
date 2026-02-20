@@ -2,7 +2,7 @@ https://app.diagrams.net/?src=about#G1kQ_78EoLbHQdXhzcdg85Tl2lp9uoxOGn#%7B%22pag
 
 # GCP Migration Knowledge Base — Batch Data Pipeline & Reporting
 
-This knowledge base article describes a production-ready GCP architecture for a batch analytics pipeline and provides a practical approach for migrating the current local pattern into GCP.
+This knowledge base article describes a production-ready GCP architecture for a batch analytics pipeline and provides an approach for migrating the current local pattern into GCP.
 
 ---
 
@@ -30,24 +30,7 @@ Reporting & BI
 
 In production, the platform runs inside a dedicated GCP project with a private networking baseline, encryption controls, and audit logging enabled.
 
-```
-GCP Project (Production)
--------------------------------------------------
-VPC Network
-  - Private Subnet
-  - Private Google Access
-  - Firewall Rules
-  - Cloud NAT (if needed)
-
-Encryption:
-  - CMEK (Customer Managed Keys)
-  - Encryption at rest & in transit
-
-Audit Logging Enabled
--------------------------------------------------
-```
-
-Notes (kept intentionally high-level for presentations):
+Notes:
 - Private networking, encryption, and audit logging are treated as mandatory prerequisites; detailed network design is client/environment-specific.
 
 ---
@@ -60,7 +43,7 @@ Typical sources include partner APIs (e.g., Kaggle), ERP, and CRM systems.
 
 Minimum expectations:
 - Data is accessed over HTTPS.
-- Credentials and tokens are stored in Secret Manager.
+- Credentials and tokens are stored in **Secret Manager**.
 
 ### 2.2 Orchestration — Cloud Composer (Managed Airflow)
 
@@ -69,12 +52,6 @@ Cloud Composer is responsible for:
 - Handling retries, SLAs, and dependency ordering
 - Triggering Dataflow jobs and capturing job state
 - Integrating failure notifications
-
-Reference trigger flow:
-
-```
-Cloud Composer → triggers Dataflow
-```
 
 ### 2.3 Secrets — Secret Manager
 
@@ -96,7 +73,6 @@ Dataflow executes the batch ETL:
 
 Operational expectations:
 - Batch execution with autoscaling where appropriate
-- Template-based deployability (Flex Templates) in CI/CD
 - Private worker configuration aligned to the project boundary
 
 ### 2.5 Storage and warehouse layers
@@ -113,11 +89,6 @@ Gold (analytics): BigQuery analytics datasets
 - Houses business-ready aggregates/materialized views
 - Optimized for BI and interactive analytics
 
-Reference mapping:
-
-```
-Raw Data → Google Cloud Storage
-```
 
 ### 2.6 Consumption layer
 
@@ -126,14 +97,6 @@ Typical consumers include Looker Studio, Power BI, Tableau, and SQL analysts.
 Access is typically implemented via:
 - IAM-authenticated users/groups
 - Authorized views and service accounts for BI tools
-
-Reference handoff:
-
-```
-Gold Dataset → Reporting Layer
-```
-
----
 
 ## 3) Security and access model
 
@@ -157,7 +120,7 @@ The access model typically includes:
 ### 3.3 Network, encryption, and auditability (single-line expectations)
 
 - Networking: private subnets, controlled egress, and service access patterns aligned to enterprise policies.
-- Encryption: encryption in transit and at rest; CMEK where required.
+- Encryption: encryption in transit and at rest;
 - Auditability: audit logs enabled and monitored.
 
 Optional (enterprise):
@@ -191,22 +154,7 @@ Alerting is expected for:
 
 ---
 
-## 5) Governance and metadata
-
-Dataplex / Data Catalog is typically used for:
-- Metadata discovery and ownership
-- Lineage visibility
-- Classification and policy tags
-
-Reference flow:
-
-```
-BigQuery & GCS → Dataplex → Governance Layer
-```
-
----
-
-## 6) Delivery model (CI/CD and environments)
+## 5) Delivery model (CI/CD and environments)
 
 Delivery is typically automated using:
 
@@ -226,7 +174,7 @@ Deploy:
 Environments:
 
 ```
-Dev → QA → Prod
+Dev → QA/Test → Prod
 ```
 
 Environment separation typically includes:
@@ -237,19 +185,17 @@ Environment separation typically includes:
 
 ---
 
-## 7) Migration approach (how to take it forward)
-
-This section is designed to be used as a client walkthrough.
+## 6) Migration approach (how to take it forward)
 
 ### Phase 0 — Foundation
 
-- Establish the GCP project boundary (VPC baseline, encryption posture, audit logging, IAM model).
+- Establish the GCP project boundary (VPC baseline, audit logging, IAM model).
 - Define datasets/buckets naming conventions and environment separation.
 
 ### Phase 1 — Ingestion and Bronze
 
 - Implement ingestion into Cloud Storage (Bronze) with consistent file naming, retention, and traceability.
-- Ensure credentials are pulled only from Secret Manager and access is least-privilege.
+- Ensure credentials are pulled only from Secret Manager and access is least-privileged.
 
 ### Phase 2 — Transform and Silver
 
@@ -264,12 +210,11 @@ This section is designed to be used as a client walkthrough.
 ### Phase 4 — Operate and harden
 
 - Add monitoring/alerting for pipeline SLOs and cost.
-- Add governance metadata and lineage.
-- Operationalize CI/CD promotion (Dev → QA → Prod).
+- Operationalize CI/CD promotion (Dev → QA/Test → Prod).
 
 ---
 
-## 8) Local development reference (kept)
+## 7) Local development reference (kept)
 
 The local repository demonstrates the same conceptual flow (extract → transform/load → report) using a notebook and SQLite. This reference is useful for explaining the pattern before introducing managed GCP services.
 
